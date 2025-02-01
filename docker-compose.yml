@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  nzwalks:
+    image: ${DOCKER_REGISTRY-}nzwalks
+    build:
+      context: .
+      dockerfile: NZWalks/Dockerfile
+    depends_on:
+      - sqlserver
+    # environment:
+    #   - ConnectionStrings__DefaultConnection=Server=localhost,1433;Database=NZWalksDB;User Id=sa;Password=YourStrong!Passw0rd;
+    ports:
+      - "5000:5000"
+    networks:
+      - app_network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: sqlserver
+    restart: always
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - app_network
+
+volumes:
+  sqlserver_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
