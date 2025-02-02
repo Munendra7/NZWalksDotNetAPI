@@ -21,9 +21,40 @@ namespace NZWalks.Repositories
             return walk;
         }
 
-        public async Task<List<Walk>> GetAllAsync()
+        public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool? isAscending = null, int pageNumber = 1, int pageSize = 1000)
         {
-            return await dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync();
+            var walksQuery = dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
+            {
+                if (filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    walksQuery = walksQuery.Where(w => w.Name.Contains(filterQuery));
+                }
+                // Add more filters as needed
+            }
+
+            //Sorting
+            if(!string.IsNullOrWhiteSpace(sortBy))
+            {
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (isAscending == true)
+                    {
+                        walksQuery = walksQuery.OrderBy(w => w.Name);
+                    }
+                    else
+                    {
+                        walksQuery = walksQuery.OrderByDescending(w => w.Name);
+                    }
+                }
+                // Add more sorting options as needed
+            }
+
+            //Pagination
+            walksQuery = walksQuery.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+
+            return await walksQuery.ToListAsync();
         }
 
         public async Task<Walk?> GetAsync(Guid id)
