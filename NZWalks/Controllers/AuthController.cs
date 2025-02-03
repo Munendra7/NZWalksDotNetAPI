@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NZWalks.Models.DTO;
+using NZWalks.Repositories;
 
 namespace NZWalks.Controllers
 {
@@ -10,18 +11,52 @@ namespace NZWalks.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<IdentityUser> userManager;
+        private readonly ITokenRepository tokenRepository;
 
-        public AuthController(UserManager<IdentityUser> userManager)
+        public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository)
         {
             this.userManager = userManager;
+            this.tokenRepository = tokenRepository;
         }
-
 
         [HttpPost]
         [Route("login")]
-        public IActionResult Login()
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
-            return Ok();
+            var user = await userManager.FindByNameAsync(loginDTO.UserName);
+
+            if (user != null) 
+            {
+                var isValid = await userManager.CheckPasswordAsync(user, loginDTO.Password);
+                if (isValid)
+                {
+                    //Get Roles
+
+                    var roles = await userManager.GetRolesAsync(user);
+
+                    if (roles != null)
+                    {
+                        if (roles.Count == 0)
+                        {
+                            return BadRequest("User has no roles assigned");
+                        }
+
+                        //Create JWT token
+                        var jwtToken = tokenRepository.GenerateJSONWebToken(user, roles.ToList());
+
+                        var response = new LoginResponseDTO
+                        { JwtToken = jwtToken };
+
+                        return Ok(response);
+                    }
+                    else
+                    {
+                        return BadRequest("User has no roles assigned");
+                    }
+                }
+            }
+
+            return BadRequest("Invalid username or password");
         }
 
         [HttpPost]

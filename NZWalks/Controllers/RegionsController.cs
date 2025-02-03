@@ -13,7 +13,7 @@ namespace NZWalks.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class RegionsController : ControllerBase
     {
         private readonly NZWalksDbContext dbContext;
@@ -28,6 +28,7 @@ namespace NZWalks.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetAll()
         {
            //Get data from database - Domain Models
@@ -44,6 +45,7 @@ namespace NZWalks.Controllers
 
         [HttpGet]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Get([FromRoute] Guid id)
         {
             //var region = dbContext.Regions.Find(id);
@@ -59,6 +61,7 @@ namespace NZWalks.Controllers
     
         [HttpPost]
         [ValidateModel]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] AddRegionDTO addRegionDto)
         {
             var regionDomainModel = new Region
@@ -82,6 +85,7 @@ namespace NZWalks.Controllers
         [HttpPut]
         [Route("{id:Guid}")]
         [ValidateModel]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateRegionDTO regionUpdateDTO)
         {
             //var regionDomainModel = await dbContext.Regions.FirstOrDefaultAsync(x => x.Id == id);
@@ -115,6 +119,7 @@ namespace NZWalks.Controllers
 
         [HttpDelete]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             //var regionDomainModel = await dbContext.Regions.FirstOrDefaultAsync(x => x.Id == id);
