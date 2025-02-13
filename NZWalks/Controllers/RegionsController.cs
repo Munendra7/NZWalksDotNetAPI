@@ -12,8 +12,10 @@ using System.Text.Json;
 
 namespace NZWalks.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     //[Authorize]
     public class RegionsController : ControllerBase
     {
@@ -30,9 +32,10 @@ namespace NZWalks.Controllers
             this.regionRepository = regionRepository;
         }
 
+        [MapToApiVersion("1.0")]
         [HttpGet]
         //[Authorize(Roles = "User")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllV1()
         {
             logger.LogInformation("GetAllAction Was invoked");
            //Get data from database - Domain Models
@@ -42,6 +45,26 @@ namespace NZWalks.Controllers
 
             //Map Domain Models to DTOs
            var regionsDTO = mapper.Map<List<RegionDTO>>(regions);
+
+            logger.LogInformation($"Finished GetAllAction with data : {JsonSerializer.Serialize(regionsDTO)}");
+
+            // Return DTOs
+            return Ok(regionsDTO);
+        }
+
+        [MapToApiVersion("2.0")]
+        [HttpGet]
+        //[Authorize(Roles = "User")]
+        public async Task<IActionResult> GetAllV2()
+        {
+            logger.LogInformation("GetAllAction Was invoked");
+            //Get data from database - Domain Models
+            //var regions = await dbContext.Regions.ToListAsync();
+
+            var regions = await regionRepository.GetAllAsync();
+
+            //Map Domain Models to DTOs
+            var regionsDTO = mapper.Map<List<RegionDTOV2>>(regions);
 
             logger.LogInformation($"Finished GetAllAction with data : {JsonSerializer.Serialize(regionsDTO)}");
 

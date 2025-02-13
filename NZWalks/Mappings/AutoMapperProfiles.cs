@@ -9,6 +9,7 @@ namespace NZWalks.Mappings
         public AutoMapperProfiles()
         {
             CreateMap<Region, RegionDTO>();
+            CreateMap<Region, RegionDTOV2>();
             CreateMap<Region, AddRegionDTO>();
             CreateMap<Region, UpdateRegionDTO>();
             CreateMap<Region, DeleteRegionDTO>();
